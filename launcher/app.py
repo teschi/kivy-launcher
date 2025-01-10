@@ -30,10 +30,23 @@ class Launcher(App):
 
         if platform == 'android':
             from jnius import autoclass
+            from android import mActivity
             Environment = autoclass('android.os.Environment')
-            sdcard_path = Environment.getExternalStorageDirectory()\
-                .getAbsolutePath()
-            self.paths = [sdcard_path + "/kivy"]
+
+            # this doesn't seem to work on newer android versions.
+            # also tried Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() which didn't work either. 
+            sdcard_path = Environment.getExternalStorageDirectory().getAbsolutePath()
+            self.paths = [sdcard_path + "/kivy"] 
+
+            # allow "/storage/emulated/0/Android/data/org.kivy.launcher/files/kivy/" to be a file where kivy apps are
+            context = mActivity.getApplicationContext()
+            result =  context.getExternalFilesDir(None) 
+            if result:
+                storage_path =  str(result.toString())
+                self.paths.append(storage_path + "/kivy")
+            
+            self.log(f'##### STORAGE OPTIONS: {self.paths}')
+            
         else:
             self.paths = [os.path.expanduser("~/kivy")]
 
